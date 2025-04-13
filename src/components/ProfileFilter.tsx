@@ -105,7 +105,7 @@ const ProfileFilter = () => {
               <SelectValue placeholder="Any location" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Any location</SelectItem>
+              <SelectItem value="_any">Any location</SelectItem>
               {allLocations.map(location => (
                 <SelectItem key={location} value={location}>
                   {location}
@@ -127,7 +127,7 @@ const ProfileFilter = () => {
               <SelectValue placeholder="Any hackathon" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Any hackathon</SelectItem>
+              <SelectItem value="_any">Any hackathon</SelectItem>
               {hackathons.map(hackathon => (
                 <SelectItem key={hackathon.id} value={hackathon.id}>
                   {hackathon.title}

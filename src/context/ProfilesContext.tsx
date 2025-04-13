@@ -61,13 +61,13 @@ export const ProfilesProvider = ({ children }: { children: React.ReactNode }) =>
       );
     }
     
-    if (criteria.location) {
+    if (criteria.location && criteria.location !== '_any') {
       results = results.filter(profile => 
         profile.location.toLowerCase().includes(criteria.location.toLowerCase())
       );
     }
     
-    if (criteria.hackathonInterests) {
+    if (criteria.hackathonInterests && criteria.hackathonInterests !== '_any') {
       results = results.filter(profile => 
         profile.hackathonInterests.some(
           h => h.toLowerCase().includes(criteria.hackathonInterests.toLowerCase())
