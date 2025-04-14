@@ -1,5 +1,5 @@
 
-import React, { createContext, useState, useContext } from 'react';
+import React, { createContext, useState, useContext, useEffect } from 'react';
 import { 
   Profile, 
   FilterCriteria, 
@@ -35,6 +35,11 @@ const defaultFilterCriteria: FilterCriteria = {
   searchTerm: ''
 };
 
+// Storage keys for localStorage
+const STORAGE_KEYS = {
+  CONVERSATIONS: 'hackathon_conversations'
+};
+
 const ProfilesContext = createContext<ProfilesContextType>({} as ProfilesContextType);
 
 export const useProfiles = () => useContext(ProfilesContext);
@@ -48,6 +53,38 @@ export const ProfilesProvider = ({ children }: { children: React.ReactNode }) =>
   
   // Mock current user - in a real app this would be from auth
   const currentUser = mockProfiles[0];
+
+  // Load conversations from localStorage on component mount
+  useEffect(() => {
+    const savedConversations = localStorage.getItem(STORAGE_KEYS.CONVERSATIONS);
+    if (savedConversations) {
+      try {
+        // Parse the saved conversations and convert ISO date strings back to Date objects
+        const parsedConversations: Conversation[] = JSON.parse(savedConversations);
+        
+        // Convert string dates back to Date objects
+        const conversationsWithDates = parsedConversations.map(convo => ({
+          ...convo,
+          lastMessageTime: new Date(convo.lastMessageTime),
+          messages: convo.messages.map(msg => ({
+            ...msg,
+            timestamp: new Date(msg.timestamp)
+          }))
+        }));
+        
+        setConversations(conversationsWithDates);
+      } catch (error) {
+        console.error("Failed to parse saved conversations:", error);
+      }
+    }
+  }, []);
+
+  // Save conversations to localStorage whenever they change
+  useEffect(() => {
+    if (conversations.length > 0) {
+      localStorage.setItem(STORAGE_KEYS.CONVERSATIONS, JSON.stringify(conversations));
+    }
+  }, [conversations]);
 
   const setFilterCriteria = (criteria: FilterCriteria) => {
     setFilterCriteriaState(criteria);

@@ -32,7 +32,7 @@ const ProfileCard = ({ profile, showActions = true }: ProfileCardProps) => {
         
         <div className="flex flex-wrap mb-4">
           {profile.skills.slice(0, 4).map((skill) => (
-            <span key={skill} className={`skill-tag ${getSkillColor(skill)}`}>
+            <span key={skill} className={`skill-tag ${getSkillColor(skill)} text-white`}>
               {skill}
             </span>
           ))}
