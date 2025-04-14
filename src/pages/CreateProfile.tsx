@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useProfiles } from "@/context/ProfilesContext";
@@ -7,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { UserPlus, UserCog, X } from "lucide-react";
+import { UserPlus, UserCog, X, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Profile } from "@/types/types";
 
@@ -18,6 +17,7 @@ const CreateProfile = () => {
   const { user } = useAuth();
   
   const [isEditing, setIsEditing] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [name, setName] = useState("");
   const [bio, setBio] = useState("");
   const [location, setLocation] = useState("");
@@ -30,17 +30,13 @@ const CreateProfile = () => {
   
   const [error, setError] = useState<string | null>(null);
 
-  // Find existing profile for the current user
   useEffect(() => {
     if (user) {
       const existingProfile = profiles.find(p => 
-        // In a real app, this would match user.id with profile.id
-        // For this demo, we'll use the currentUser from the context
         currentUser && p.id === currentUser.id
       );
 
       if (existingProfile) {
-        // Set form fields with existing profile data
         setName(existingProfile.name);
         setBio(existingProfile.bio);
         setLocation(existingProfile.location);
@@ -74,7 +70,7 @@ const CreateProfile = () => {
     }
   };
   
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!name || !bio || !location || !email || skills.length === 0) {
@@ -82,35 +78,40 @@ const CreateProfile = () => {
       return;
     }
     
-    const profileData: Omit<Profile, 'id'> = {
-      name,
-      avatar: currentUser?.avatar || `https://i.pravatar.cc/150?img=${Math.floor(Math.random() * 70)}`,
-      bio,
-      skills,
-      location,
-      hackathonInterests,
-      email,
-      github: github || undefined,
-      linkedin: linkedin || undefined
-    };
+    setIsSubmitting(true);
     
-    if (isEditing && currentUser) {
-      // Update existing profile
-      addProfile({ ...profileData, id: currentUser.id });
+    try {
+      const userId = user?.id || (currentUser ? currentUser.id : `user-${Date.now()}`);
+      
+      const profileData: Profile = {
+        id: userId,
+        name,
+        avatar: currentUser?.avatar || `https://i.pravatar.cc/150?img=${Math.floor(Math.random() * 70)}`,
+        bio,
+        skills,
+        location,
+        hackathonInterests,
+        email,
+        github: github || undefined,
+        linkedin: linkedin || undefined
+      };
+      
+      await addProfile(profileData);
+      
       toast({
-        title: "Profile updated!",
-        description: "Your profile has been successfully updated.",
+        title: isEditing ? "Profile updated!" : "Profile created!",
+        description: isEditing 
+          ? "Your profile has been successfully updated."
+          : "Your profile has been successfully created.",
       });
-    } else {
-      // Create new profile
-      addProfile({ ...profileData, id: `user-${Date.now()}` });
-      toast({
-        title: "Profile created!",
-        description: "Your profile has been successfully created.",
-      });
+      
+      navigate("/profiles");
+    } catch (error) {
+      console.error("Error saving profile:", error);
+      setError("Failed to save profile. Please try again.");
+    } finally {
+      setIsSubmitting(false);
     }
-    
-    navigate("/profiles");
   };
 
   const toggleEditMode = () => {
@@ -312,8 +313,20 @@ const CreateProfile = () => {
         
         {(isEditing || !currentUser) && (
           <div className="pt-4">
-            <Button type="submit" size="lg" className="w-full sm:w-auto">
-              {isEditing ? "Update Profile" : "Create Profile"}
+            <Button 
+              type="submit" 
+              size="lg" 
+              className="w-full sm:w-auto"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  {isEditing ? "Updating..." : "Creating..."}
+                </>
+              ) : (
+                isEditing ? "Update Profile" : "Create Profile"
+              )}
             </Button>
           </div>
         )}
