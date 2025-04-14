@@ -86,9 +86,21 @@ export const ProfilesProvider = ({ children }: { children: React.ReactNode }) =>
   };
 
   const addProfile = (profile: Profile) => {
-    const newProfiles = [...profiles, profile];
-    setProfiles(newProfiles);
-    setFilteredProfiles(newProfiles);
+    // Check if this is an update to an existing profile
+    const existingProfileIndex = profiles.findIndex(p => p.id === profile.id);
+    
+    if (existingProfileIndex >= 0) {
+      // Update existing profile
+      const updatedProfiles = [...profiles];
+      updatedProfiles[existingProfileIndex] = profile;
+      setProfiles(updatedProfiles);
+      setFilteredProfiles(updatedProfiles); // Re-apply filters
+    } else {
+      // Add new profile
+      const newProfiles = [...profiles, profile];
+      setProfiles(newProfiles);
+      setFilteredProfiles(newProfiles);
+    }
   };
 
   const getProfileById = (id: string) => {
