@@ -89,40 +89,49 @@ export const ProfilesProvider = ({ children }: { children: React.ReactNode }) =>
     }
   }, [conversations]);
 
-  const setFilterCriteria = (criteria: FilterCriteria) => {
-    setFilterCriteriaState(criteria);
-    
-    // Apply filters
+  // Apply filters whenever filterCriteria changes
+  useEffect(() => {
+    applyFilters();
+  }, [filterCriteria]);
+
+  const applyFilters = () => {
     let results = [...profiles];
     
-    if (criteria.skills.length > 0) {
+    if (filterCriteria.skills.length > 0) {
       results = results.filter(profile => 
-        profile.skills.some(skill => criteria.skills.includes(skill))
+        profile.skills.some(skill => filterCriteria.skills.includes(skill))
       );
     }
     
-    if (criteria.location && criteria.location !== '_any') {
+    if (filterCriteria.location) {
       results = results.filter(profile => 
-        profile.location.toLowerCase().includes(criteria.location.toLowerCase())
+        profile.location.toLowerCase().includes(filterCriteria.location.toLowerCase())
       );
     }
     
-    if (criteria.hackathonInterests && criteria.hackathonInterests !== '_any') {
+    if (filterCriteria.hackathonInterests) {
       results = results.filter(profile => 
         profile.hackathonInterests.some(
-          h => h.toLowerCase().includes(criteria.hackathonInterests.toLowerCase())
+          h => h.toLowerCase().includes(filterCriteria.hackathonInterests.toLowerCase())
         )
       );
     }
     
-    if (criteria.searchTerm) {
+    if (filterCriteria.searchTerm) {
+      const searchLower = filterCriteria.searchTerm.toLowerCase();
       results = results.filter(profile => 
-        profile.name.toLowerCase().includes(criteria.searchTerm.toLowerCase()) ||
-        profile.bio.toLowerCase().includes(criteria.searchTerm.toLowerCase())
+        profile.name.toLowerCase().includes(searchLower) ||
+        profile.bio.toLowerCase().includes(searchLower) ||
+        profile.skills.some(skill => skill.toLowerCase().includes(searchLower))
       );
     }
     
     setFilteredProfiles(results);
+  };
+
+  const setFilterCriteria = (criteria: FilterCriteria) => {
+    setFilterCriteriaState(criteria);
+    // The filter is now applied automatically in the useEffect
   };
 
   const addProfile = async (profile: Profile) => {
