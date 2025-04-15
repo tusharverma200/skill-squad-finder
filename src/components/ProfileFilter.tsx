@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/popover";
 import { Check, Filter, X } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useEffect } from "react";
 
 const ProfileFilter = () => {
   const { 
@@ -31,6 +32,7 @@ const ProfileFilter = () => {
   const allLocations = getAllLocations();
   
   const handleSkillToggle = (skill: string) => {
+    console.log(`Toggling skill: ${skill}`);
     const updatedSkills = filterCriteria.skills.includes(skill)
       ? filterCriteria.skills.filter(s => s !== skill)
       : [...filterCriteria.skills, skill];
@@ -42,6 +44,7 @@ const ProfileFilter = () => {
   };
   
   const handleLocationChange = (location: string) => {
+    console.log(`Location changed to: ${location}`);
     setFilterCriteria({
       ...filterCriteria,
       location: location === "_any" ? "" : location
@@ -49,6 +52,7 @@ const ProfileFilter = () => {
   };
   
   const handleHackathonChange = (hackathonId: string) => {
+    console.log(`Hackathon changed to: ${hackathonId}`);
     if (hackathonId === "_any") {
       setFilterCriteria({
         ...filterCriteria,
@@ -65,13 +69,16 @@ const ProfileFilter = () => {
   };
   
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    console.log(`Search term changed to: ${value}`);
     setFilterCriteria({
       ...filterCriteria,
-      searchTerm: e.target.value
+      searchTerm: value
     });
   };
   
   const clearFilters = () => {
+    console.log("Clearing all filters");
     setFilterCriteria({
       skills: [],
       location: "",
@@ -105,7 +112,7 @@ const ProfileFilter = () => {
             Location
           </Label>
           <Select 
-            value={filterCriteria.location} 
+            value={filterCriteria.location || "_any"} 
             onValueChange={handleLocationChange}
           >
             <SelectTrigger id="location-select">
@@ -127,8 +134,10 @@ const ProfileFilter = () => {
             Hackathon Interest
           </Label>
           <Select 
-            value={filterCriteria.hackathonInterests} 
-            onValueChange={(value) => handleHackathonChange(value)}
+            value={filterCriteria.hackathonInterests ? 
+              hackathons.find(h => h.title === filterCriteria.hackathonInterests)?.id || "_any" : 
+              "_any"} 
+            onValueChange={handleHackathonChange}
           >
             <SelectTrigger id="hackathon-select">
               <SelectValue placeholder="Any hackathon" />

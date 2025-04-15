@@ -46,10 +46,10 @@ const ProfilesContext = createContext<ProfilesContextType>({} as ProfilesContext
 export const useProfiles = () => useContext(ProfilesContext);
 
 export const ProfilesProvider = ({ children }: { children: React.ReactNode }) => {
-  const [profiles, setProfiles] = useState<Profile[]>(mockProfiles);
+  const [profiles] = useState<Profile[]>(mockProfiles);
   const [hackathons] = useState<Hackathon[]>(mockHackathons);
   const [filteredProfiles, setFilteredProfiles] = useState<Profile[]>(mockProfiles);
-  const [filterCriteria, setFilterCriteriaState] = useState<FilterCriteria>(defaultFilterCriteria);
+  const [filterCriteria, setFilterCriteriaInternal] = useState<FilterCriteria>(defaultFilterCriteria);
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const { user } = useAuth();
   const { toast } = useToast();
@@ -91,10 +91,12 @@ export const ProfilesProvider = ({ children }: { children: React.ReactNode }) =>
 
   // Apply filters whenever filterCriteria changes
   useEffect(() => {
+    console.log("Filter criteria changed:", filterCriteria);
     applyFilters();
   }, [filterCriteria]);
 
   const applyFilters = () => {
+    console.log("Applying filters with criteria:", filterCriteria);
     let results = [...profiles];
     
     if (filterCriteria.skills.length > 0) {
@@ -126,12 +128,13 @@ export const ProfilesProvider = ({ children }: { children: React.ReactNode }) =>
       );
     }
     
+    console.log(`Filtered from ${profiles.length} to ${results.length} profiles`);
     setFilteredProfiles(results);
   };
 
   const setFilterCriteria = (criteria: FilterCriteria) => {
-    setFilterCriteriaState(criteria);
-    // The filter is now applied automatically in the useEffect
+    console.log("Setting filter criteria:", criteria);
+    setFilterCriteriaInternal(criteria);
   };
 
   const addProfile = async (profile: Profile) => {
@@ -144,12 +147,12 @@ export const ProfilesProvider = ({ children }: { children: React.ReactNode }) =>
         const updatedProfiles = [...profiles];
         updatedProfiles[existingProfileIndex] = profile;
         setProfiles(updatedProfiles);
-        setFilteredProfiles(updatedProfiles); // Re-apply filters
+        applyFilters(); // Re-apply filters after update
       } else {
         // Add new profile
         const newProfiles = [...profiles, profile];
         setProfiles(newProfiles);
-        setFilteredProfiles(newProfiles);
+        applyFilters(); // Re-apply filters after adding
       }
       
       toast({
