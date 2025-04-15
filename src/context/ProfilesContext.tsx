@@ -9,7 +9,6 @@ import {
 } from '@/types/types';
 import { mockProfiles } from '@/data/mockProfiles';
 import { mockHackathons } from '@/data/mockHackathons';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
@@ -58,11 +57,6 @@ export const ProfilesProvider = ({ children }: { children: React.ReactNode }) =>
   // Mock current user - in a real app this would be from auth
   const currentUser = mockProfiles[0];
 
-  // Load profiles from Supabase on mount
-  useEffect(() => {
-    fetchProfiles();
-  }, []);
-
   // Load conversations from localStorage on component mount
   useEffect(() => {
     const savedConversations = localStorage.getItem(STORAGE_KEYS.CONVERSATIONS);
@@ -94,41 +88,6 @@ export const ProfilesProvider = ({ children }: { children: React.ReactNode }) =>
       localStorage.setItem(STORAGE_KEYS.CONVERSATIONS, JSON.stringify(conversations));
     }
   }, [conversations]);
-
-  // Fetch profiles from Supabase
-  const fetchProfiles = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*');
-      
-      if (error) {
-        console.error('Error fetching profiles:', error);
-        return;
-      }
-
-      if (data) {
-        // Transform Supabase profiles to our Profile type
-        const formattedProfiles: Profile[] = data.map(profile => ({
-          id: profile.id,
-          name: profile.username || 'Anonymous',
-          avatar: profile.avatar_url || `https://i.pravatar.cc/150?img=${Math.floor(Math.random() * 70)}`,
-          bio: profile.bio || '',
-          skills: profile.skills || [],
-          location: profile.location || 'Unknown',
-          hackathonInterests: profile.hackathon_interests || [],
-          email: profile.email || '',
-          github: profile.github,
-          linkedin: profile.linkedin
-        }));
-
-        setProfiles(formattedProfiles);
-        setFilteredProfiles(formattedProfiles);
-      }
-    } catch (error) {
-      console.error('Error fetching profiles:', error);
-    }
-  };
 
   const setFilterCriteria = (criteria: FilterCriteria) => {
     setFilterCriteriaState(criteria);
@@ -171,50 +130,25 @@ export const ProfilesProvider = ({ children }: { children: React.ReactNode }) =>
       // Check if this is an update to an existing profile
       const existingProfileIndex = profiles.findIndex(p => p.id === profile.id);
       
-      // Prepare data for Supabase (match the column names)
-      const profileData = {
-        id: profile.id,
-        username: profile.name,
-        avatar_url: profile.avatar,
-        bio: profile.bio,
-        location: profile.location,
-        skills: profile.skills,
-        hackathon_interests: profile.hackathonInterests,
-        email: profile.email,
-        github: profile.github,
-        linkedin: profile.linkedin
-      };
-      
-      // Update or insert profile in Supabase
-      const { error } = await supabase
-        .from('profiles')
-        .upsert(profileData, { onConflict: 'id' });
-      
-      if (error) {
-        console.error('Error saving profile to Supabase:', error);
-        toast({
-          title: "Error Saving Profile",
-          description: error.message,
-          variant: "destructive"
-        });
-        return;
-      }
-      
       if (existingProfileIndex >= 0) {
-        // Update existing profile in local state
+        // Update existing profile
         const updatedProfiles = [...profiles];
         updatedProfiles[existingProfileIndex] = profile;
         setProfiles(updatedProfiles);
         setFilteredProfiles(updatedProfiles); // Re-apply filters
       } else {
-        // Add new profile to local state
+        // Add new profile
         const newProfiles = [...profiles, profile];
         setProfiles(newProfiles);
         setFilteredProfiles(newProfiles);
       }
       
-      // Refresh profiles from the server to keep the data in sync
-      fetchProfiles();
+      toast({
+        title: existingProfileIndex >= 0 ? "Profile Updated" : "Profile Created",
+        description: existingProfileIndex >= 0 
+          ? "Your profile has been updated successfully."
+          : "Your profile has been created successfully.",
+      });
       
     } catch (error) {
       console.error('Error in addProfile:', error);
