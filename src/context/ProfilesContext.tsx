@@ -1,5 +1,4 @@
-
-import React, { createContext, useState, useContext } from 'react';
+import React, { createContext, useState, useContext, useEffect } from 'react';
 import { 
   Profile, 
   FilterCriteria, 
@@ -10,6 +9,8 @@ import {
 } from '@/types/types';
 import { mockProfiles } from '@/data/mockProfiles';
 import { mockHackathons } from '@/data/mockHackathons';
+import { useAuth } from '@/context/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 
 interface ProfilesContextType {
   profiles: Profile[];
@@ -19,7 +20,7 @@ interface ProfilesContextType {
   filteredProfiles: Profile[];
   filterCriteria: FilterCriteria;
   setFilterCriteria: (criteria: FilterCriteria) => void;
-  addProfile: (profile: Profile) => void;
+  addProfile: (profile: Profile) => Promise<void>;
   getProfileById: (id: string) => Profile | undefined;
   sendMessage: (to: string, content: string) => void;
   getConversation: (profileId: string) => Message[];
@@ -35,6 +36,11 @@ const defaultFilterCriteria: FilterCriteria = {
   searchTerm: ''
 };
 
+// Storage keys for localStorage
+const STORAGE_KEYS = {
+  CONVERSATIONS: 'hackathon_conversations'
+};
+
 const ProfilesContext = createContext<ProfilesContextType>({} as ProfilesContextType);
 
 export const useProfiles = () => useContext(ProfilesContext);
@@ -45,50 +51,122 @@ export const ProfilesProvider = ({ children }: { children: React.ReactNode }) =>
   const [filteredProfiles, setFilteredProfiles] = useState<Profile[]>(mockProfiles);
   const [filterCriteria, setFilterCriteriaState] = useState<FilterCriteria>(defaultFilterCriteria);
   const [conversations, setConversations] = useState<Conversation[]>([]);
+  const { user } = useAuth();
+  const { toast } = useToast();
   
   // Mock current user - in a real app this would be from auth
   const currentUser = mockProfiles[0];
 
-  const setFilterCriteria = (criteria: FilterCriteria) => {
-    setFilterCriteriaState(criteria);
-    
-    // Apply filters
+  // Load conversations from localStorage on component mount
+  useEffect(() => {
+    const savedConversations = localStorage.getItem(STORAGE_KEYS.CONVERSATIONS);
+    if (savedConversations) {
+      try {
+        // Parse the saved conversations and convert ISO date strings back to Date objects
+        const parsedConversations: Conversation[] = JSON.parse(savedConversations);
+        
+        // Convert string dates back to Date objects
+        const conversationsWithDates = parsedConversations.map(convo => ({
+          ...convo,
+          lastMessageTime: new Date(convo.lastMessageTime),
+          messages: convo.messages.map(msg => ({
+            ...msg,
+            timestamp: new Date(msg.timestamp)
+          }))
+        }));
+        
+        setConversations(conversationsWithDates);
+      } catch (error) {
+        console.error("Failed to parse saved conversations:", error);
+      }
+    }
+  }, []);
+
+  // Save conversations to localStorage whenever they change
+  useEffect(() => {
+    if (conversations.length > 0) {
+      localStorage.setItem(STORAGE_KEYS.CONVERSATIONS, JSON.stringify(conversations));
+    }
+  }, [conversations]);
+
+  // Apply filters whenever filterCriteria changes
+  useEffect(() => {
+    applyFilters();
+  }, [filterCriteria]);
+
+  const applyFilters = () => {
     let results = [...profiles];
     
-    if (criteria.skills.length > 0) {
+    if (filterCriteria.skills.length > 0) {
       results = results.filter(profile => 
-        profile.skills.some(skill => criteria.skills.includes(skill))
+        profile.skills.some(skill => filterCriteria.skills.includes(skill))
       );
     }
     
-    if (criteria.location && criteria.location !== '_any') {
+    if (filterCriteria.location) {
       results = results.filter(profile => 
-        profile.location.toLowerCase().includes(criteria.location.toLowerCase())
+        profile.location.toLowerCase().includes(filterCriteria.location.toLowerCase())
       );
     }
     
-    if (criteria.hackathonInterests && criteria.hackathonInterests !== '_any') {
+    if (filterCriteria.hackathonInterests) {
       results = results.filter(profile => 
         profile.hackathonInterests.some(
-          h => h.toLowerCase().includes(criteria.hackathonInterests.toLowerCase())
+          h => h.toLowerCase().includes(filterCriteria.hackathonInterests.toLowerCase())
         )
       );
     }
     
-    if (criteria.searchTerm) {
+    if (filterCriteria.searchTerm) {
+      const searchLower = filterCriteria.searchTerm.toLowerCase();
       results = results.filter(profile => 
-        profile.name.toLowerCase().includes(criteria.searchTerm.toLowerCase()) ||
-        profile.bio.toLowerCase().includes(criteria.searchTerm.toLowerCase())
+        profile.name.toLowerCase().includes(searchLower) ||
+        profile.bio.toLowerCase().includes(searchLower) ||
+        profile.skills.some(skill => skill.toLowerCase().includes(searchLower))
       );
     }
     
     setFilteredProfiles(results);
   };
 
-  const addProfile = (profile: Profile) => {
-    const newProfiles = [...profiles, profile];
-    setProfiles(newProfiles);
-    setFilteredProfiles(newProfiles);
+  const setFilterCriteria = (criteria: FilterCriteria) => {
+    setFilterCriteriaState(criteria);
+    // The filter is now applied automatically in the useEffect
+  };
+
+  const addProfile = async (profile: Profile) => {
+    try {
+      // Check if this is an update to an existing profile
+      const existingProfileIndex = profiles.findIndex(p => p.id === profile.id);
+      
+      if (existingProfileIndex >= 0) {
+        // Update existing profile
+        const updatedProfiles = [...profiles];
+        updatedProfiles[existingProfileIndex] = profile;
+        setProfiles(updatedProfiles);
+        setFilteredProfiles(updatedProfiles); // Re-apply filters
+      } else {
+        // Add new profile
+        const newProfiles = [...profiles, profile];
+        setProfiles(newProfiles);
+        setFilteredProfiles(newProfiles);
+      }
+      
+      toast({
+        title: existingProfileIndex >= 0 ? "Profile Updated" : "Profile Created",
+        description: existingProfileIndex >= 0 
+          ? "Your profile has been updated successfully."
+          : "Your profile has been created successfully.",
+      });
+      
+    } catch (error) {
+      console.error('Error in addProfile:', error);
+      toast({
+        title: "Error Saving Profile",
+        description: "An unexpected error occurred.",
+        variant: "destructive"
+      });
+    }
   };
 
   const getProfileById = (id: string) => {

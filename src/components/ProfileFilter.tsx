@@ -44,17 +44,24 @@ const ProfileFilter = () => {
   const handleLocationChange = (location: string) => {
     setFilterCriteria({
       ...filterCriteria,
-      location
+      location: location === "_any" ? "" : location
     });
   };
   
   const handleHackathonChange = (hackathonId: string) => {
-    const hackathon = hackathons.find(h => h.id === hackathonId);
-    
-    setFilterCriteria({
-      ...filterCriteria,
-      hackathonInterests: hackathon ? hackathon.title : ''
-    });
+    if (hackathonId === "_any") {
+      setFilterCriteria({
+        ...filterCriteria,
+        hackathonInterests: ""
+      });
+    } else {
+      const hackathon = hackathons.find(h => h.id === hackathonId);
+      
+      setFilterCriteria({
+        ...filterCriteria,
+        hackathonInterests: hackathon ? hackathon.title : ""
+      });
+    }
   };
   
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -67,9 +74,9 @@ const ProfileFilter = () => {
   const clearFilters = () => {
     setFilterCriteria({
       skills: [],
-      location: '',
-      hackathonInterests: '',
-      searchTerm: ''
+      location: "",
+      hackathonInterests: "",
+      searchTerm: ""
     });
   };
   

@@ -1,4 +1,3 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -47,27 +46,27 @@
   }
 
   .skill-tag {
-    @apply px-3 py-1 rounded-full text-white text-sm font-medium m-1;
+    @apply px-3 py-1 rounded-full text-white text-sm font-medium m-1 shadow-sm;
   }
   
   .skill-react {
-    @apply bg-skill-react;
+    @apply bg-skill-react text-white;
   }
   
   .skill-vue {
-    @apply bg-skill-vue;
+    @apply bg-skill-vue text-white;
   }
 
   .skill-angular {
-    @apply bg-skill-angular;
+    @apply bg-skill-angular text-white;
   }
 
   .skill-node {
-    @apply bg-skill-node;
+    @apply bg-skill-node text-white;
   }
 
   .skill-python {
-    @apply bg-skill-python;
+    @apply bg-skill-python text-white;
   }
 
   .skill-design {

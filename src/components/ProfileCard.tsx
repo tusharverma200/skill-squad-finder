@@ -30,9 +30,12 @@ const ProfileCard = ({ profile, showActions = true }: ProfileCardProps) => {
       <CardContent>
         <p className="text-sm line-clamp-2 mb-3">{profile.bio}</p>
         
-        <div className="flex flex-wrap mb-4">
+        <div className="flex flex-wrap gap-1 mb-4">
           {profile.skills.slice(0, 4).map((skill) => (
-            <span key={skill} className={`skill-tag ${getSkillColor(skill)}`}>
+            <span 
+              key={skill} 
+              className={`px-2 py-1 rounded-full text-xs ${getSkillColor(skill)} text-white`}
+            >
               {skill}
             </span>
           ))}
