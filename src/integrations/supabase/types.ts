@@ -14,13 +14,8 @@ export type Database = {
           avatar_url: string | null
           bio: string | null
           created_at: string | null
-          email: string | null
-          github: string | null
-          hackathon_interests: string[] | null
           id: string
-          linkedin: string | null
           location: string | null
-          skills: string[] | null
           updated_at: string | null
           username: string | null
         }
@@ -28,13 +23,8 @@ export type Database = {
           avatar_url?: string | null
           bio?: string | null
           created_at?: string | null
-          email?: string | null
-          github?: string | null
-          hackathon_interests?: string[] | null
           id: string
-          linkedin?: string | null
           location?: string | null
-          skills?: string[] | null
           updated_at?: string | null
           username?: string | null
         }
@@ -42,13 +32,8 @@ export type Database = {
           avatar_url?: string | null
           bio?: string | null
           created_at?: string | null
-          email?: string | null
-          github?: string | null
-          hackathon_interests?: string[] | null
           id?: string
-          linkedin?: string | null
           location?: string | null
-          skills?: string[] | null
           updated_at?: string | null
           username?: string | null
         }
