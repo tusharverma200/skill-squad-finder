@@ -3,21 +3,10 @@ import { useProfiles } from "@/context/ProfilesContext";
 import ProfileCard from "@/components/ProfileCard";
 import ProfileFilter from "@/components/ProfileFilter";
 import { Users } from "lucide-react";
-import { useEffect } from "react";
 
 const Profiles = () => {
-  const { filteredProfiles, profiles, setFilterCriteria } = useProfiles();
+  const { filteredProfiles } = useProfiles();
   
-  // Reset filters when component mounts to ensure all profiles are shown
-  useEffect(() => {
-    setFilterCriteria({
-      skills: [],
-      location: '',
-      hackathonInterests: '',
-      searchTerm: ''
-    });
-  }, [setFilterCriteria]);
-
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       <div className="space-y-1">
@@ -27,9 +16,6 @@ const Profiles = () => {
         </h1>
         <p className="text-muted-foreground">
           Discover potential teammates with the skills and interests you need
-        </p>
-        <p className="text-sm text-muted-foreground">
-          Showing {filteredProfiles.length} of {profiles.length} profiles
         </p>
       </div>
       

@@ -1,23 +1,19 @@
-import { useState, useEffect } from "react";
+
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useProfiles } from "@/context/ProfilesContext";
-import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { UserPlus, UserCog, X, Loader2 } from "lucide-react";
+import { UserPlus, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { Profile } from "@/types/types";
 
 const CreateProfile = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { addProfile, hackathons, profiles, currentUser } = useProfiles();
-  const { user } = useAuth();
+  const { addProfile, hackathons } = useProfiles();
   
-  const [isEditing, setIsEditing] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [name, setName] = useState("");
   const [bio, setBio] = useState("");
   const [location, setLocation] = useState("");
@@ -29,25 +25,6 @@ const CreateProfile = () => {
   const [hackathonInterests, setHackathonInterests] = useState<string[]>([]);
   
   const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (user) {
-      const existingProfile = profiles.find(p => 
-        currentUser && p.id === currentUser.id
-      );
-
-      if (existingProfile) {
-        setName(existingProfile.name);
-        setBio(existingProfile.bio);
-        setLocation(existingProfile.location);
-        setEmail(existingProfile.email);
-        setGithub(existingProfile.github || "");
-        setLinkedin(existingProfile.linkedin || "");
-        setSkills([...existingProfile.skills]);
-        setHackathonInterests([...existingProfile.hackathonInterests]);
-      }
-    }
-  }, [user, profiles, currentUser]);
   
   const handleAddSkill = () => {
     if (currentSkill.trim() && !skills.includes(currentSkill.trim())) {
@@ -70,7 +47,7 @@ const CreateProfile = () => {
     }
   };
   
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!name || !bio || !location || !email || skills.length === 0) {
@@ -78,78 +55,39 @@ const CreateProfile = () => {
       return;
     }
     
-    setIsSubmitting(true);
+    const newProfile = {
+      id: `user-${Date.now()}`,
+      name,
+      avatar: `https://i.pravatar.cc/150?img=${Math.floor(Math.random() * 70)}`,
+      bio,
+      skills,
+      location,
+      hackathonInterests,
+      email,
+      github: github || undefined,
+      linkedin: linkedin || undefined
+    };
     
-    try {
-      const userId = user?.id || (currentUser ? currentUser.id : `user-${Date.now()}`);
-      
-      const profileData: Profile = {
-        id: userId,
-        name,
-        avatar: currentUser?.avatar || `https://i.pravatar.cc/150?img=${Math.floor(Math.random() * 70)}`,
-        bio,
-        skills,
-        location,
-        hackathonInterests,
-        email,
-        github: github || undefined,
-        linkedin: linkedin || undefined
-      };
-      
-      await addProfile(profileData);
-      
-      toast({
-        title: isEditing ? "Profile updated!" : "Profile created!",
-        description: isEditing 
-          ? "Your profile has been successfully updated."
-          : "Your profile has been successfully created.",
-      });
-      
-      navigate("/profiles");
-    } catch (error) {
-      console.error("Error saving profile:", error);
-      setError("Failed to save profile. Please try again.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const toggleEditMode = () => {
-    setIsEditing(!isEditing);
+    addProfile(newProfile);
+    
+    toast({
+      title: "Profile created!",
+      description: "Your profile has been successfully created.",
+    });
+    
+    navigate("/profiles");
   };
   
   return (
     <div className="max-w-3xl mx-auto space-y-6 pb-10">
-      <div className="flex justify-between items-center">
-        <div className="space-y-1">
-          <h1 className="text-3xl font-bold flex items-center gap-2">
-            {isEditing ? (
-              <>
-                <UserCog className="h-6 w-6 text-primary" />
-                Edit Your Profile
-              </>
-            ) : (
-              <>
-                <UserPlus className="h-6 w-6 text-primary" />
-                {currentUser ? "Your Profile" : "Create Your Profile"}
-              </>
-            )}
-          </h1>
-          <p className="text-muted-foreground">
-            {isEditing 
-              ? "Update your information to better connect with potential teammates" 
-              : "Share your skills and interests to connect with potential teammates"}
-          </p>
-        </div>
-        
-        {currentUser && (
-          <Button 
-            onClick={toggleEditMode} 
-            variant={isEditing ? "outline" : "secondary"}
-          >
-            {isEditing ? "Cancel Editing" : "Edit Profile"}
-          </Button>
-        )}
+      <div className="space-y-1">
+        <h1 className="text-3xl font-bold flex items-center gap-2">
+          <UserPlus className="h-6 w-6 text-primary" />
+          Create Your Profile
+        </h1>
+        <p className="text-muted-foreground">
+          Share your skills and interests to connect with potential teammates
+        </p>
       </div>
       
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -167,7 +105,6 @@ const CreateProfile = () => {
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Your full name"
-              disabled={!isEditing && currentUser !== null}
               required
             />
           </div>
@@ -179,7 +116,6 @@ const CreateProfile = () => {
               value={location}
               onChange={(e) => setLocation(e.target.value)}
               placeholder="City, Country or Remote"
-              disabled={!isEditing && currentUser !== null}
               required
             />
           </div>
@@ -193,7 +129,6 @@ const CreateProfile = () => {
             onChange={(e) => setBio(e.target.value)}
             placeholder="Tell others about yourself, your experience, and what you're looking for in a hackathon team"
             className="min-h-[120px]"
-            disabled={!isEditing && currentUser !== null}
             required
           />
         </div>
@@ -206,11 +141,9 @@ const CreateProfile = () => {
               value={currentSkill}
               onChange={(e) => setCurrentSkill(e.target.value)}
               placeholder="Add your technical skills"
-              disabled={!isEditing && currentUser !== null}
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
                   e.preventDefault();
-                  if (!isEditing && currentUser !== null) return;
                   handleAddSkill();
                 }
               }}
@@ -218,7 +151,7 @@ const CreateProfile = () => {
             <Button 
               type="button" 
               onClick={handleAddSkill} 
-              disabled={(!isEditing && currentUser !== null) || !currentSkill.trim()}
+              disabled={!currentSkill.trim()}
             >
               Add
             </Button>
@@ -232,15 +165,13 @@ const CreateProfile = () => {
                   className="bg-primary/10 text-primary rounded-full px-3 py-1 text-sm flex items-center gap-1"
                 >
                   <span>{skill}</span>
-                  {(isEditing || !currentUser) && (
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveSkill(skill)}
-                      className="hover:bg-primary/20 rounded-full"
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
-                  )}
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveSkill(skill)}
+                    className="hover:bg-primary/20 rounded-full"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
                 </div>
               ))}
             </div>
@@ -257,14 +188,13 @@ const CreateProfile = () => {
                   hackathonInterests.includes(hackathon.title)
                     ? 'border-primary bg-primary/5'
                     : 'hover:bg-muted/50'
-                } ${(!isEditing && currentUser !== null) ? 'opacity-80 cursor-default' : 'cursor-pointer'}`}
+                }`}
               >
                 <input
                   type="checkbox"
                   className="sr-only"
                   checked={hackathonInterests.includes(hackathon.title)}
-                  onChange={() => (isEditing || !currentUser) && toggleHackathonInterest(hackathon.title)}
-                  disabled={!isEditing && currentUser !== null}
+                  onChange={() => toggleHackathonInterest(hackathon.title)}
                 />
                 <span className="text-sm">{hackathon.title}</span>
               </label>
@@ -282,7 +212,6 @@ const CreateProfile = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Your email address"
-                disabled={!isEditing && currentUser !== null}
                 required
               />
             </div>
@@ -294,7 +223,6 @@ const CreateProfile = () => {
                 value={github}
                 onChange={(e) => setGithub(e.target.value)}
                 placeholder="Your GitHub username"
-                disabled={!isEditing && currentUser !== null}
               />
             </div>
             
@@ -305,31 +233,16 @@ const CreateProfile = () => {
                 value={linkedin}
                 onChange={(e) => setLinkedin(e.target.value)}
                 placeholder="Your LinkedIn username"
-                disabled={!isEditing && currentUser !== null}
               />
             </div>
           </div>
         </div>
         
-        {(isEditing || !currentUser) && (
-          <div className="pt-4">
-            <Button 
-              type="submit" 
-              size="lg" 
-              className="w-full sm:w-auto"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  {isEditing ? "Updating..." : "Creating..."}
-                </>
-              ) : (
-                isEditing ? "Update Profile" : "Create Profile"
-              )}
-            </Button>
-          </div>
-        )}
+        <div className="pt-4">
+          <Button type="submit" size="lg" className="w-full sm:w-auto">
+            Create Profile
+          </Button>
+        </div>
       </form>
     </div>
   );
