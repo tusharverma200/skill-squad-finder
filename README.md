@@ -1,73 +1,70 @@
-# Welcome to your Lovable project
 
-## Project info
+# Hackathon Team Finder
 
-**URL**: https://lovable.dev/projects/12817f37-a042-40c3-96ab-0b316932f0d6
+A platform for connecting developers, designers, and innovators looking to form teams for hackathons and projects.
 
-## How can I edit this code?
+## Project Overview
 
-There are several ways of editing your application.
+Hackathon Team Finder allows users to:
+- Browse profiles of potential teammates
+- Filter profiles by skills, location, and hackathon interests
+- View upcoming hackathons
+- Create their own profile to showcase skills and interests
 
-**Use Lovable**
+## Setup Instructions
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/12817f37-a042-40c3-96ab-0b316932f0d6) and start prompting.
+### Prerequisites
+- Node.js & npm - [Install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
 
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
+### Local Development
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
+# Step 1: Clone the repository
 git clone <YOUR_GIT_URL>
 
-# Step 2: Navigate to the project directory.
+# Step 2: Navigate to the project directory
 cd <YOUR_PROJECT_NAME>
 
-# Step 3: Install the necessary dependencies.
-npm i
+# Step 3: Install dependencies
+npm install
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Step 4: Start the development server
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+The application will be available at http://localhost:8080
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## Usage Guide
 
-**Use GitHub Codespaces**
+### Navigation
+- **Home Page**: Overview of the platform features
+- **Find Teammates**: Browse and filter user profiles by skills, location, and hackathon interests
+- **Hackathons**: View upcoming hackathon events
+- **Messages**: Connect with potential teammates (requires authentication)
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+### Filtering Profiles
+1. Navigate to the "Find Teammates" page
+2. Use the search bar to find teammates by name or bio
+3. Filter by location using the dropdown menu
+4. Filter by hackathon interest using the dropdown menu
+5. Click the "Skills" button to select specific skills you're looking for
+6. Use the "Clear filters" button to reset all filters
 
-## What technologies are used for this project?
+### Creating Your Profile
+1. Sign in to your account
+2. Navigate to the "Create Profile" page
+3. Fill in your details, skills, and interests
+4. Submit your profile to make it visible to other users
 
-This project is built with:
+## Technologies
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+- React with TypeScript
+- Vite for fast development
+- Tailwind CSS for styling
+- shadcn/ui for UI components
+- React Router for navigation
+- Tanstack React Query for data fetching (ready for future API integration)
 
-## How can I deploy this project?
+## Contributing
 
-Simply open [Lovable](https://lovable.dev/projects/12817f37-a042-40c3-96ab-0b316932f0d6) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+Contributions are welcome! Push your changes to this repository, and they will be reflected in Lovable.
