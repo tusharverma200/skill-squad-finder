@@ -1,4 +1,3 @@
-
 import { useProfiles } from "@/context/ProfilesContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,35 +28,33 @@ const ProfileFilter = () => {
   
   const allSkills = getAllSkills();
   const allLocations = getAllLocations();
-
-  //console.log(allLocations, allSkills, hackathons);
   
   const handleSkillToggle = (skill: string) => {
     console.log(`Toggling skill: ${skill}`);
     const updatedSkills = filterCriteria.skills.includes(skill)
       ? filterCriteria.skills.filter(s => s !== skill)
       : [...filterCriteria.skills, skill];
-      
-      filterCriteria.skills = updatedSkills
-      setFilterCriteria(filterCriteria);
     
+    setFilterCriteria({
+      ...filterCriteria,
+      skills: updatedSkills
+    });
   };
   
   const handleLocationChange = (location: string) => {
     setFilterCriteria({
       ...filterCriteria,
-      location
+      location: location === "_any" ? "" : location
     });
   };
   
   const handleHackathonChange = (hackathonId: string) => {
-    const hackathon = hackathons.find(h => h.id === hackathonId);
-    
     setFilterCriteria({
       ...filterCriteria,
-      hackathonInterests: hackathon ? hackathon.title : ''
+      hackathonInterests: hackathonId === "_any" ? "" : hackathonId
     });
   };
+
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFilterCriteria({
       ...filterCriteria,

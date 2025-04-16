@@ -47,7 +47,7 @@ const ProfilesContext = createContext<ProfilesContextType>({} as ProfilesContext
 export const useProfiles = () => useContext(ProfilesContext);
 
 export const ProfilesProvider = ({ children }: { children: React.ReactNode }) => {
-  const [profiles] = useState<Profile[]>(mockProfiles);
+  const [profiles, setProfiles] = useState<Profile[]>(mockProfiles);
   const [hackathons] = useState<Hackathon[]>(mockHackathons);
   const [filteredProfiles, setFilteredProfiles] = useState<Profile[]>(mockProfiles);
   const [filterCriteria, setFilterCriteriaState] = useState<FilterCriteria>(defaultFilterCriteria);
@@ -87,10 +87,9 @@ export const ProfilesProvider = ({ children }: { children: React.ReactNode }) =>
       }
     }
   }, []);
-// console.log("Profiles", profiles)
+
   // Save conversations to localStorage whenever they change
   useEffect(() => {
-   
     if (conversations.length > 0) {
       localStorage.setItem(STORAGE_KEYS.CONVERSATIONS, JSON.stringify(conversations));
     }
@@ -131,24 +130,22 @@ export const ProfilesProvider = ({ children }: { children: React.ReactNode }) =>
     }
   };
 
-  const setFilterCriteria = (criteria: FilterCriteria) => {
-    setFilterCriteriaState(criteria);
-    
-    // Apply filters
+  // Apply filters based on current filter criteria
+  const applyFilters = () => {
     let results = [...profiles];
     
     if (filterCriteria.skills.length > 0) {
       results = results.filter(profile => 
         profile.skills.some(skill => filterCriteria.skills.includes(skill))
       );
-      console.log("Results in skills", results)
+      console.log("Results in skills", results);
     }
     
     if (filterCriteria.location) {
       results = results.filter(profile => 
         profile.location.toLowerCase().includes(filterCriteria.location.toLowerCase())
       );
-      console.log("Results in location", results)
+      console.log("Results in location", results);
     }
     
     if (filterCriteria.hackathonInterests) {
@@ -157,7 +154,7 @@ export const ProfilesProvider = ({ children }: { children: React.ReactNode }) =>
           h => h.toLowerCase().includes(filterCriteria.hackathonInterests.toLowerCase())
         )
       );
-      console.log("Results in Hackathons", results)
+      console.log("Results in Hackathons", results);
     }
     
     if (filterCriteria.searchTerm) {
@@ -167,21 +164,22 @@ export const ProfilesProvider = ({ children }: { children: React.ReactNode }) =>
         profile.bio.toLowerCase().includes(searchLower) ||
         profile.skills.some(skill => skill.toLowerCase().includes(searchLower))
       );
-      console.log("Results in sarchTerm", results)
+      console.log("Results in searchTerm", results);
     }
-   if(criteria.location){
-    console.log("Results after location", results)
-   }
     
     console.log(`Filtered from ${profiles.length} to ${results.length} profiles`);
     setFilteredProfiles(results);
-
-   // console.log("Filtered Profiles", results)
   };
 
+  // Combined setFilterCriteria function
   const setFilterCriteria = (criteria: FilterCriteria) => {
     console.log("Setting filter criteria:", criteria);
-    setFilterCriteriaInternal(criteria);
+    setFilterCriteriaState(criteria);
+    
+    // Apply filters with the new criteria
+    setTimeout(() => {
+      applyFilters();
+    }, 0);
   };
 
   const addProfile = async (profile: Profile) => {
