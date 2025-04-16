@@ -12,6 +12,7 @@ import { mockHackathons } from '@/data/mockHackathons';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { Filter } from 'lucide-react';
 
 interface ProfilesContextType {
   profiles: Profile[];
@@ -49,7 +50,7 @@ export const useProfiles = () => useContext(ProfilesContext);
 export const ProfilesProvider = ({ children }: { children: React.ReactNode }) => {
   const [profiles, setProfiles] = useState<Profile[]>(mockProfiles);
   const [hackathons] = useState<Hackathon[]>(mockHackathons);
-  const [filteredProfiles, setFilteredProfiles] = useState<Profile[]>(mockProfiles);
+  const [filteredProfiles, setFilteredProfiles] = useState<Profile[]>([]);
   const [filterCriteria, setFilterCriteriaState] = useState<FilterCriteria>(defaultFilterCriteria);
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const { user } = useAuth();
@@ -60,6 +61,7 @@ export const ProfilesProvider = ({ children }: { children: React.ReactNode }) =>
 
   // Load profiles from Supabase on mount
   useEffect(() => {
+  
     fetchProfiles();
   }, []);
 
@@ -87,9 +89,10 @@ export const ProfilesProvider = ({ children }: { children: React.ReactNode }) =>
       }
     }
   }, []);
-
+// console.log("Profiles", profiles)
   // Save conversations to localStorage whenever they change
   useEffect(() => {
+   
     if (conversations.length > 0) {
       localStorage.setItem(STORAGE_KEYS.CONVERSATIONS, JSON.stringify(conversations));
     }
@@ -98,25 +101,23 @@ export const ProfilesProvider = ({ children }: { children: React.ReactNode }) =>
   // Fetch profiles from Supabase
   const fetchProfiles = async () => {
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*');
+      const data= mockProfiles
       
-      if (error) {
-        console.error('Error fetching profiles:', error);
-        return;
-      }
-
+      // if (error) {
+      //   console.error('Error fetching profiles:', error);
+      //   return;
+      // }
+console.log("Data", data)
       if (data) {
         // Transform Supabase profiles to our Profile type
         const formattedProfiles: Profile[] = data.map(profile => ({
           id: profile.id,
-          name: profile.username || 'Anonymous',
-          avatar: profile.avatar_url || `https://i.pravatar.cc/150?img=${Math.floor(Math.random() * 70)}`,
+          name: profile.name || 'Anonymous',
+          avatar: profile.avatar || `https://i.pravatar.cc/150?img=${Math.floor(Math.random() * 70)}`,
           bio: profile.bio || '',
           skills: profile.skills || [],
           location: profile.location || 'Unknown',
-          hackathonInterests: profile.hackathon_interests || [],
+          hackathonInterests: profile.hackathonInterests || [],
           email: profile.email || '',
           github: profile.github,
           linkedin: profile.linkedin
@@ -131,21 +132,24 @@ export const ProfilesProvider = ({ children }: { children: React.ReactNode }) =>
   };
 
   const setFilterCriteria = (criteria: FilterCriteria) => {
+ 
     setFilterCriteriaState(criteria);
-    
+   
     // Apply filters
-    let results = [...profiles];
+    let results = profiles;
     
     if (criteria.skills.length > 0) {
       results = results.filter(profile => 
         profile.skills.some(skill => criteria.skills.includes(skill))
       );
+      console.log("Results in skills", results)
     }
     
     if (criteria.location && criteria.location !== '_any') {
       results = results.filter(profile => 
         profile.location.toLowerCase().includes(criteria.location.toLowerCase())
       );
+      console.log("Results in location", results)
     }
     
     if (criteria.hackathonInterests && criteria.hackathonInterests !== '_any') {
@@ -154,6 +158,7 @@ export const ProfilesProvider = ({ children }: { children: React.ReactNode }) =>
           h => h.toLowerCase().includes(criteria.hackathonInterests.toLowerCase())
         )
       );
+      console.log("Results in Hackathons", results)
     }
     
     if (criteria.searchTerm) {
@@ -161,16 +166,22 @@ export const ProfilesProvider = ({ children }: { children: React.ReactNode }) =>
         profile.name.toLowerCase().includes(criteria.searchTerm.toLowerCase()) ||
         profile.bio.toLowerCase().includes(criteria.searchTerm.toLowerCase())
       );
+      console.log("Results in sarchTerm", results)
     }
+   if(criteria.location){
+    console.log("Results after location", results)
+   }
     
     setFilteredProfiles(results);
+
+   // console.log("Filtered Profiles", results)
   };
 
   const addProfile = async (profile: Profile) => {
     try {
       // Check if this is an update to an existing profile
       const existingProfileIndex = profiles.findIndex(p => p.id === profile.id);
-      
+      mockProfiles[0]=profile
       // Prepare data for Supabase (match the column names)
       const profileData = {
         id: profile.id,
@@ -294,29 +305,31 @@ export const ProfilesProvider = ({ children }: { children: React.ReactNode }) =>
   
   const getSkillColor = (skill: string): string => {
     const normalizedSkill = skill.toLowerCase();
-    
+    //console.log("Normalized Skill", normalizedSkill)
     // Check if we have a specific color for this skill
     const skillKeys = Object.keys(SkillColor);
+    //  console.log("Skill Keys", skillKeys)
     const matchingKey = skillKeys.find(key => normalizedSkill.includes(key.toLowerCase()));
-    
-    if (matchingKey) {
-      return `skill-${matchingKey.toLowerCase()}`;
-    }
+  //  console.log("Matching Key", matchingKey)
+  //  console.log("Matching Key", matchingKey)
+    // if (matchingKey) {
+    //   return `bg-blue-500`;
+    // }
     
     // Generic colors based on categories
-    if (normalizedSkill.includes('front') || normalizedSkill.includes('ui') || normalizedSkill.includes('ux')) {
-      return 'skill-frontend';
-    } else if (normalizedSkill.includes('back') || normalizedSkill.includes('server')) {
-      return 'skill-backend';
-    } else if (normalizedSkill.includes('design') || normalizedSkill.includes('figma')) {
-      return 'skill-design';
-    } else if (normalizedSkill.includes('mobile') || normalizedSkill.includes('app')) {
-      return 'skill-mobile';
-    } else if (normalizedSkill.includes('devops') || normalizedSkill.includes('cloud')) {
-      return 'skill-devops';
-    } else if (normalizedSkill.includes('ai') || normalizedSkill.includes('ml')) {
-      return 'skill-ai';
-    }
+    // if (normalizedSkill.includes('front') || normalizedSkill.includes('ui') || normalizedSkill.includes('ux')) {
+    //   return 'skill-frontend';
+    // } else if (normalizedSkill.includes('back') || normalizedSkill.includes('server')) {
+    //   return 'skill-backend';
+    // } else if (normalizedSkill.includes('design') || normalizedSkill.includes('figma')) {
+    //   return 'skill-design';
+    // } else if (normalizedSkill.includes('mobile') || normalizedSkill.includes('app')) {
+    //   return 'skill-mobile';
+    // } else if (normalizedSkill.includes('devops') || normalizedSkill.includes('cloud')) {
+    //   return 'skill-devops';
+    // } else if (normalizedSkill.includes('ai') || normalizedSkill.includes('ml')) {
+    //   return 'skill-ai';
+    // }
     
     // Default
     return 'bg-gray-500';

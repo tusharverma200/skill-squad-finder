@@ -64,7 +64,7 @@ export default {
 					ring: 'hsl(var(--sidebar-ring))'
 				},
 				skill: {
-					'react': '#61dafb',
+					'react': '#7856ff',
 					'vue': '#42b883',
 					'angular': '#dd0031',
 					'node': '#68a063',

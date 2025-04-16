@@ -13,8 +13,7 @@ import { Profile } from "@/types/types";
 const CreateProfile = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { addProfile, hackathons, profiles, currentUser } = useProfiles();
-  const { user } = useAuth();
+  const { hackathons} = useProfiles();
   
   const [isEditing, setIsEditing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -31,23 +30,33 @@ const CreateProfile = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (user) {
-      const existingProfile = profiles.find(p => 
-        currentUser && p.id === currentUser.id
-      );
+   
+   const storedProfile = localStorage.getItem("profile");
+    const isEditingStored = localStorage.getItem("isEditing");
+    const isSubmittingStored = localStorage.getItem("isSubmitting");
 
-      if (existingProfile) {
-        setName(existingProfile.name);
-        setBio(existingProfile.bio);
-        setLocation(existingProfile.location);
-        setEmail(existingProfile.email);
-        setGithub(existingProfile.github || "");
-        setLinkedin(existingProfile.linkedin || "");
-        setSkills([...existingProfile.skills]);
-        setHackathonInterests([...existingProfile.hackathonInterests]);
-      }
+    // if (isEditingStored) {
+    //   setIsEditing(JSON.parse(isEditingStored));
+    // }
+    // if (isSubmittingStored) {
+    //   setIsSubmitting(JSON.parse(isSubmittingStored));
+    // }
+
+    if (storedProfile) {
+      const parsedProfile = JSON.parse(storedProfile) as Profile;
+      setName(parsedProfile.name);
+      setBio(parsedProfile.bio);
+      setLocation(parsedProfile.location);
+      setEmail(parsedProfile.email);
+      setSkills(parsedProfile.skills || []);
+      setHackathonInterests(parsedProfile.hackathonInterests || []);
+      setGithub(parsedProfile.github || "");
+      setLinkedin(parsedProfile.linkedin || "");
+    
     }
-  }, [user, profiles, currentUser]);
+  }, []);
+
+
   
   const handleAddSkill = () => {
     if (currentSkill.trim() && !skills.includes(currentSkill.trim())) {
@@ -79,14 +88,13 @@ const CreateProfile = () => {
     }
     
     setIsSubmitting(true);
-    
+    setIsEditing(true);
     try {
-      const userId = user?.id || (currentUser ? currentUser.id : `user-${Date.now()}`);
+     // const userId = user?.id || (name ? name.id : `user-${Date.now()}`);
       
-      const profileData: Profile = {
-        id: userId,
+      const profileData = {
+        id: Date.now().toString(),
         name,
-        avatar: currentUser?.avatar || `https://i.pravatar.cc/150?img=${Math.floor(Math.random() * 70)}`,
         bio,
         skills,
         location,
@@ -96,7 +104,10 @@ const CreateProfile = () => {
         linkedin: linkedin || undefined
       };
       
-      await addProfile(profileData);
+      localStorage.setItem("profile", JSON.stringify(profileData));
+      localStorage.setItem("isEditing", JSON.stringify(isEditing));
+      localStorage.setItem("isSubmitting", JSON.stringify(isSubmitting));
+    //  await addProfile(profileData);
       
       toast({
         title: isEditing ? "Profile updated!" : "Profile created!",
@@ -110,7 +121,7 @@ const CreateProfile = () => {
       console.error("Error saving profile:", error);
       setError("Failed to save profile. Please try again.");
     } finally {
-      setIsSubmitting(false);
+      setIsSubmitting(true);
     }
   };
 
@@ -131,7 +142,7 @@ const CreateProfile = () => {
             ) : (
               <>
                 <UserPlus className="h-6 w-6 text-primary" />
-                {currentUser ? "Your Profile" : "Create Your Profile"}
+                {name ? "Your Profile" : "Create Your Profile"}
               </>
             )}
           </h1>
@@ -141,15 +152,6 @@ const CreateProfile = () => {
               : "Share your skills and interests to connect with potential teammates"}
           </p>
         </div>
-        
-        {currentUser && (
-          <Button 
-            onClick={toggleEditMode} 
-            variant={isEditing ? "outline" : "secondary"}
-          >
-            {isEditing ? "Cancel Editing" : "Edit Profile"}
-          </Button>
-        )}
       </div>
       
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -167,7 +169,7 @@ const CreateProfile = () => {
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Your full name"
-              disabled={!isEditing && currentUser !== null}
+              disabled={isEditing && name !== null}
               required
             />
           </div>
@@ -179,7 +181,7 @@ const CreateProfile = () => {
               value={location}
               onChange={(e) => setLocation(e.target.value)}
               placeholder="City, Country or Remote"
-              disabled={!isEditing && currentUser !== null}
+              disabled={isEditing && name !== null}
               required
             />
           </div>
@@ -193,7 +195,7 @@ const CreateProfile = () => {
             onChange={(e) => setBio(e.target.value)}
             placeholder="Tell others about yourself, your experience, and what you're looking for in a hackathon team"
             className="min-h-[120px]"
-            disabled={!isEditing && currentUser !== null}
+            disabled={isEditing && name !== null}
             required
           />
         </div>
@@ -206,11 +208,11 @@ const CreateProfile = () => {
               value={currentSkill}
               onChange={(e) => setCurrentSkill(e.target.value)}
               placeholder="Add your technical skills"
-              disabled={!isEditing && currentUser !== null}
+              disabled={isEditing && name !== null}
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
                   e.preventDefault();
-                  if (!isEditing && currentUser !== null) return;
+                  if (!isEditing && name !== null) return;
                   handleAddSkill();
                 }
               }}
@@ -218,7 +220,7 @@ const CreateProfile = () => {
             <Button 
               type="button" 
               onClick={handleAddSkill} 
-              disabled={(!isEditing && currentUser !== null) || !currentSkill.trim()}
+              disabled={(isEditing && name !== null) || !currentSkill.trim()}
             >
               Add
             </Button>
@@ -232,7 +234,7 @@ const CreateProfile = () => {
                   className="bg-primary/10 text-primary rounded-full px-3 py-1 text-sm flex items-center gap-1"
                 >
                   <span>{skill}</span>
-                  {(isEditing || !currentUser) && (
+                  {(isEditing || !name) && (
                     <button
                       type="button"
                       onClick={() => handleRemoveSkill(skill)}
@@ -257,14 +259,14 @@ const CreateProfile = () => {
                   hackathonInterests.includes(hackathon.title)
                     ? 'border-primary bg-primary/5'
                     : 'hover:bg-muted/50'
-                } ${(!isEditing && currentUser !== null) ? 'opacity-80 cursor-default' : 'cursor-pointer'}`}
+                } ${(isEditing && name !== null) ? 'opacity-80 cursor-default' : 'cursor-pointer'}`}
               >
                 <input
                   type="checkbox"
                   className="sr-only"
                   checked={hackathonInterests.includes(hackathon.title)}
-                  onChange={() => (isEditing || !currentUser) && toggleHackathonInterest(hackathon.title)}
-                  disabled={!isEditing && currentUser !== null}
+                  onChange={() => (!isEditing || !name) && toggleHackathonInterest(hackathon.title)}
+                  disabled={isEditing && name !== null}
                 />
                 <span className="text-sm">{hackathon.title}</span>
               </label>
@@ -282,7 +284,7 @@ const CreateProfile = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Your email address"
-                disabled={!isEditing && currentUser !== null}
+                disabled={isEditing && name !== null}
                 required
               />
             </div>
@@ -294,7 +296,7 @@ const CreateProfile = () => {
                 value={github}
                 onChange={(e) => setGithub(e.target.value)}
                 placeholder="Your GitHub username"
-                disabled={!isEditing && currentUser !== null}
+                disabled={isEditing && name !== null}
               />
             </div>
             
@@ -305,13 +307,13 @@ const CreateProfile = () => {
                 value={linkedin}
                 onChange={(e) => setLinkedin(e.target.value)}
                 placeholder="Your LinkedIn username"
-                disabled={!isEditing && currentUser !== null}
+                disabled={isEditing && name !== null}
               />
             </div>
           </div>
         </div>
         
-        {(isEditing || !currentUser) && (
+     
           <div className="pt-4">
             <Button 
               type="submit" 
@@ -325,11 +327,11 @@ const CreateProfile = () => {
                   {isEditing ? "Updating..." : "Creating..."}
                 </>
               ) : (
-                isEditing ? "Update Profile" : "Create Profile"
+                name ? "Update Profile" : "Create Profile"
               )}
             </Button>
           </div>
-        )}
+   
       </form>
     </div>
   );

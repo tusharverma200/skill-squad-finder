@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/popover";
 import { Check, Filter, X } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
+import { set } from "date-fns";
 
 const ProfileFilter = () => {
   const { 
@@ -29,39 +30,38 @@ const ProfileFilter = () => {
   
   const allSkills = getAllSkills();
   const allLocations = getAllLocations();
+
+  //console.log(allLocations, allSkills, hackathons);
   
   const handleSkillToggle = (skill: string) => {
     const updatedSkills = filterCriteria.skills.includes(skill)
       ? filterCriteria.skills.filter(s => s !== skill)
       : [...filterCriteria.skills, skill];
       
-    setFilterCriteria({
-      ...filterCriteria,
-      skills: updatedSkills
-    });
+      filterCriteria.skills = updatedSkills
+      setFilterCriteria(filterCriteria);
+    
   };
   
   const handleLocationChange = (location: string) => {
-    setFilterCriteria({
-      ...filterCriteria,
-      location
-    });
+    filterCriteria.location = location
+    setFilterCriteria(filterCriteria);
+
+  //  console.log(filterCriteria, location);
   };
   
   const handleHackathonChange = (hackathonId: string) => {
-    const hackathon = hackathons.find(h => h.id === hackathonId);
-    
+    console.log("Hackathon ID:", hackathonId);
+    const hackathon = hackathons.find(h => h.title === hackathonId);
+    console.log("Selected Hackathon:", hackathon);
     setFilterCriteria({
       ...filterCriteria,
       hackathonInterests: hackathon ? hackathon.title : ''
     });
   };
-  
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFilterCriteria({
-      ...filterCriteria,
-      searchTerm: e.target.value
-    });
+    filterCriteria.searchTerm = e.target.value
+    setFilterCriteria(filterCriteria);
   };
   
   const clearFilters = () => {
@@ -129,7 +129,7 @@ const ProfileFilter = () => {
             <SelectContent>
               <SelectItem value="_any">Any hackathon</SelectItem>
               {hackathons.map(hackathon => (
-                <SelectItem key={hackathon.id} value={hackathon.id}>
+                <SelectItem key={hackathon.id} value={hackathon.title}>
                   {hackathon.title}
                 </SelectItem>
               ))}

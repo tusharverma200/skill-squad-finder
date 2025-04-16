@@ -1,7 +1,7 @@
 
 import { Profile } from '@/types/types';
 
-export const mockProfiles: Profile[] = [
+export let mockProfiles: Profile[] = [
   {
     id: '1',
     name: 'Alex Johnson',
