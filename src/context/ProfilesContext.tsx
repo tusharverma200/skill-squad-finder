@@ -9,7 +9,6 @@ import {
 } from '@/types/types';
 import { mockProfiles } from '@/data/mockProfiles';
 import { mockHackathons } from '@/data/mockHackathons';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { Filter } from 'lucide-react';
@@ -48,9 +47,9 @@ const ProfilesContext = createContext<ProfilesContextType>({} as ProfilesContext
 export const useProfiles = () => useContext(ProfilesContext);
 
 export const ProfilesProvider = ({ children }: { children: React.ReactNode }) => {
-  const [profiles, setProfiles] = useState<Profile[]>(mockProfiles);
+  const [profiles] = useState<Profile[]>(mockProfiles);
   const [hackathons] = useState<Hackathon[]>(mockHackathons);
-  const [filteredProfiles, setFilteredProfiles] = useState<Profile[]>([]);
+  const [filteredProfiles, setFilteredProfiles] = useState<Profile[]>(mockProfiles);
   const [filterCriteria, setFilterCriteriaState] = useState<FilterCriteria>(defaultFilterCriteria);
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const { user } = useAuth();
@@ -61,7 +60,6 @@ export const ProfilesProvider = ({ children }: { children: React.ReactNode }) =>
 
   // Load profiles from Supabase on mount
   useEffect(() => {
-  
     fetchProfiles();
   }, []);
 
@@ -101,23 +99,25 @@ export const ProfilesProvider = ({ children }: { children: React.ReactNode }) =>
   // Fetch profiles from Supabase
   const fetchProfiles = async () => {
     try {
-      const data= mockProfiles
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*');
       
-      // if (error) {
-      //   console.error('Error fetching profiles:', error);
-      //   return;
-      // }
-console.log("Data", data)
+      if (error) {
+        console.error('Error fetching profiles:', error);
+        return;
+      }
+
       if (data) {
         // Transform Supabase profiles to our Profile type
         const formattedProfiles: Profile[] = data.map(profile => ({
           id: profile.id,
-          name: profile.name || 'Anonymous',
-          avatar: profile.avatar || `https://i.pravatar.cc/150?img=${Math.floor(Math.random() * 70)}`,
+          name: profile.username || 'Anonymous',
+          avatar: profile.avatar_url || `https://i.pravatar.cc/150?img=${Math.floor(Math.random() * 70)}`,
           bio: profile.bio || '',
           skills: profile.skills || [],
           location: profile.location || 'Unknown',
-          hackathonInterests: profile.hackathonInterests || [],
+          hackathonInterests: profile.hackathon_interests || [],
           email: profile.email || '',
           github: profile.github,
           linkedin: profile.linkedin
@@ -132,39 +132,40 @@ console.log("Data", data)
   };
 
   const setFilterCriteria = (criteria: FilterCriteria) => {
- 
     setFilterCriteriaState(criteria);
-   
-    // Apply filters
-    let results = profiles;
     
-    if (criteria.skills.length > 0) {
+    // Apply filters
+    let results = [...profiles];
+    
+    if (filterCriteria.skills.length > 0) {
       results = results.filter(profile => 
-        profile.skills.some(skill => criteria.skills.includes(skill))
+        profile.skills.some(skill => filterCriteria.skills.includes(skill))
       );
       console.log("Results in skills", results)
     }
     
-    if (criteria.location && criteria.location !== '_any') {
+    if (filterCriteria.location) {
       results = results.filter(profile => 
-        profile.location.toLowerCase().includes(criteria.location.toLowerCase())
+        profile.location.toLowerCase().includes(filterCriteria.location.toLowerCase())
       );
       console.log("Results in location", results)
     }
     
-    if (criteria.hackathonInterests && criteria.hackathonInterests !== '_any') {
+    if (filterCriteria.hackathonInterests) {
       results = results.filter(profile => 
         profile.hackathonInterests.some(
-          h => h.toLowerCase().includes(criteria.hackathonInterests.toLowerCase())
+          h => h.toLowerCase().includes(filterCriteria.hackathonInterests.toLowerCase())
         )
       );
       console.log("Results in Hackathons", results)
     }
     
-    if (criteria.searchTerm) {
+    if (filterCriteria.searchTerm) {
+      const searchLower = filterCriteria.searchTerm.toLowerCase();
       results = results.filter(profile => 
-        profile.name.toLowerCase().includes(criteria.searchTerm.toLowerCase()) ||
-        profile.bio.toLowerCase().includes(criteria.searchTerm.toLowerCase())
+        profile.name.toLowerCase().includes(searchLower) ||
+        profile.bio.toLowerCase().includes(searchLower) ||
+        profile.skills.some(skill => skill.toLowerCase().includes(searchLower))
       );
       console.log("Results in sarchTerm", results)
     }
@@ -172,16 +173,22 @@ console.log("Data", data)
     console.log("Results after location", results)
    }
     
+    console.log(`Filtered from ${profiles.length} to ${results.length} profiles`);
     setFilteredProfiles(results);
 
    // console.log("Filtered Profiles", results)
+  };
+
+  const setFilterCriteria = (criteria: FilterCriteria) => {
+    console.log("Setting filter criteria:", criteria);
+    setFilterCriteriaInternal(criteria);
   };
 
   const addProfile = async (profile: Profile) => {
     try {
       // Check if this is an update to an existing profile
       const existingProfileIndex = profiles.findIndex(p => p.id === profile.id);
-      mockProfiles[0]=profile
+      
       // Prepare data for Supabase (match the column names)
       const profileData = {
         id: profile.id,
@@ -212,20 +219,24 @@ console.log("Data", data)
       }
       
       if (existingProfileIndex >= 0) {
-        // Update existing profile in local state
+        // Update existing profile
         const updatedProfiles = [...profiles];
         updatedProfiles[existingProfileIndex] = profile;
         setProfiles(updatedProfiles);
-        setFilteredProfiles(updatedProfiles); // Re-apply filters
+        applyFilters(); // Re-apply filters after update
       } else {
-        // Add new profile to local state
+        // Add new profile
         const newProfiles = [...profiles, profile];
         setProfiles(newProfiles);
-        setFilteredProfiles(newProfiles);
+        applyFilters(); // Re-apply filters after adding
       }
       
-      // Refresh profiles from the server to keep the data in sync
-      fetchProfiles();
+      toast({
+        title: existingProfileIndex >= 0 ? "Profile Updated" : "Profile Created",
+        description: existingProfileIndex >= 0 
+          ? "Your profile has been updated successfully."
+          : "Your profile has been created successfully.",
+      });
       
     } catch (error) {
       console.error('Error in addProfile:', error);

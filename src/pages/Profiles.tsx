@@ -14,7 +14,6 @@ const Profiles = () => {
   
   // Reset filters when component mounts to ensure all profiles are shown
   useEffect(() => {
-    console.log("Profiles component mounted, resetting filters");
     setFilterCriteria({
       skills: [],
       location: '',
