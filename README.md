@@ -56,21 +56,6 @@ The application will be available at http://localhost:8080
 3. Fill in your details, skills, and interests
 4. Submit your profile to make it visible to other users
 
-## Deployment
-
-This project is hosted on Lovable. To deploy changes:
-
-1. Open [Lovable](https://lovable.dev/projects/12817f37-a042-40c3-96ab-0b316932f0d6)
-2. Click on Share -> Publish
-3. Follow the prompts to deploy your application
-
-### Custom Domain Setup
-
-To connect a custom domain to your Lovable project:
-1. Navigate to Project > Settings > Domains
-2. Click "Connect Domain"
-3. Follow the instructions to configure your DNS settings
-
 ## Technologies
 
 - React with TypeScript
