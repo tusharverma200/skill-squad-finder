@@ -77,6 +77,7 @@ export const ProfilesProvider = ({ children }: { children: React.ReactNode }) =>
         }));
 
         setConversations(conversationsWithDates);
+        console.log("Parsed conversations from localStorage:", conversations);
       } catch (error) {
         console.error("Failed to parse saved conversations:", error);
       }
