@@ -125,20 +125,20 @@ export const ProfilesProvider = ({ children }: { children: React.ReactNode }) =>
   };
 
   const applyFilters = () => {
-    let results = mockProfiles;
+    let results = [...profiles];
 
     if (filterCriteria.skills.length > 0) {
       results = results.filter(profile =>
         profile.skills.some(skill => filterCriteria.skills.includes(skill))
       );
-      console.log("Results in skills", results);
+      //  console.log("Results in skills", results);
     }
 
     if (filterCriteria.location) {
       results = results.filter(profile =>
         profile.location.toLowerCase().includes(filterCriteria.location.toLowerCase())
       );
-      console.log("Results in location", results);
+      // console.log("Results in location", results);
     }
 
     if (filterCriteria.hackathonInterests) {
@@ -147,7 +147,7 @@ export const ProfilesProvider = ({ children }: { children: React.ReactNode }) =>
           h => h.toLowerCase().includes(filterCriteria.hackathonInterests.toLowerCase())
         )
       );
-      console.log("Results in Hackathons", results);
+      //  console.log("Results in Hackathons", results);
     }
 
     if (filterCriteria.searchTerm) {
@@ -157,17 +157,17 @@ export const ProfilesProvider = ({ children }: { children: React.ReactNode }) =>
         profile.bio.toLowerCase().includes(searchLower) ||
         profile.skills.some(skill => skill.toLowerCase().includes(searchLower))
       );
-      console.log("Results in searchTerm", results);
+      //  console.log("Results in searchTerm", results);
     }
 
-    console.log(`Filtered from ${profiles.length} to ${results.length} profiles`);
+    //  console.log(`Filtered from ${profiles.length} to ${results.length} profiles`);
     setFilteredProfiles(results);
   };
 
   const setFilterCriteria = (criteria: FilterCriteria) => {
-    console.log("Setting filter criteria:", criteria);
+    // console.log("Setting filter criteria:", criteria);
     setFilterCriteriaState(criteria);
-
+    console.log("Filter criteria set:", filterCriteria);
     setTimeout(() => {
       applyFilters();
     }, 0);

@@ -30,48 +30,42 @@ const ProfileFilter = () => {
   const allLocations = getAllLocations();
 
   const handleSkillToggle = (skill: string) => {
-    console.log(`Toggling skill: ${skill}`);
-    const updatedSkills = filterCriteria.skills.includes(skill)
+    //  console.log(`Toggling skill: ${skill}`);
+    const skills = filterCriteria.skills.includes(skill)
       ? filterCriteria.skills.filter(s => s !== skill)
       : [...filterCriteria.skills, skill];
-
-    setFilterCriteria({
-      ...filterCriteria,
-      skills: updatedSkills
-    });
+    filterCriteria.skills = skills;
+    setFilterCriteria(filterCriteria);
+    // console.log("Updated filter criteria:", filterCriteria);
   };
 
   const handleLocationChange = (location: string) => {
-    console.log("Location", location)
-    setFilterCriteria({
-      ...filterCriteria,
-      location: location === "_any" ? "" : location
-    });
+    //console.log("Location", location)
+    filterCriteria.location = location;
+    setFilterCriteria(filterCriteria);
+    //  console.log("Updated filter criteria:", filterCriteria);
   };
 
   const handleHackathonChange = (hackathonId: string) => {
-    console.log(`Toggling hackathon interest: ${hackathonId}`);
-    setFilterCriteria({
-      ...filterCriteria,
-      hackathonInterests: hackathonId === "_any" ? "" : hackathonId
-    });
+    console.log("Hackathon", hackathonId)
+    filterCriteria.hackathonInterests = hackathonId === "_any" ? "" : hackathonId;
+    setFilterCriteria(filterCriteria);
+    //  console.log("Updated filter criteria:", filterCriteria);
   };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFilterCriteria({
-      ...filterCriteria,
-      searchTerm: e.target.value
-    });
+    filterCriteria.searchTerm = e.target.value;
+    setFilterCriteria(filterCriteria);
+    //  console.log("Updated filter criteria:", filterCriteria);
   };
 
   const clearFilters = () => {
-    console.log("Clearing all filters");
-    setFilterCriteria({
-      skills: [],
-      location: "",
-      hackathonInterests: "",
-      searchTerm: ""
-    });
+    //  console.log("Clearing all filters");
+    filterCriteria.skills = [];
+    filterCriteria.location = "";
+    filterCriteria.hackathonInterests = "";
+    filterCriteria.searchTerm = "";
+    setFilterCriteria(filterCriteria);
   };
 
   const hasActiveFilters = filterCriteria.skills.length > 0 ||
