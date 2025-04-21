@@ -1,4 +1,3 @@
-
 import { useProfiles } from "@/context/ProfilesContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,38 +30,42 @@ const ProfileFilter = () => {
   const allLocations = getAllLocations();
 
   const handleSkillToggle = (skill: string) => {
-    const newCriteria = { ...filterCriteria };
-    newCriteria.skills = filterCriteria.skills.includes(skill)
+    //  console.log(`Toggling skill: ${skill}`);
+    const skills = filterCriteria.skills.includes(skill)
       ? filterCriteria.skills.filter(s => s !== skill)
       : [...filterCriteria.skills, skill];
-    setFilterCriteria(newCriteria);
+    filterCriteria.skills = skills;
+    setFilterCriteria(filterCriteria);
+    // console.log("Updated filter criteria:", filterCriteria);
   };
 
   const handleLocationChange = (location: string) => {
-    const newCriteria = { ...filterCriteria };
-    newCriteria.location = location === "_any" ? "" : location;
-    setFilterCriteria(newCriteria);
+    //console.log("Location", location)
+    filterCriteria.location = location;
+    setFilterCriteria(filterCriteria);
+    //  console.log("Updated filter criteria:", filterCriteria);
   };
 
-  const handleHackathonChange = (hackathonTitle: string) => {
-    const newCriteria = { ...filterCriteria };
-    newCriteria.hackathonInterests = hackathonTitle === "_any" ? "" : hackathonTitle;
-    setFilterCriteria(newCriteria);
+  const handleHackathonChange = (hackathonId: string) => {
+    console.log("Hackathon", hackathonId)
+    filterCriteria.hackathonInterests = hackathonId === "_any" ? "" : hackathonId;
+    setFilterCriteria(filterCriteria);
+    //  console.log("Updated filter criteria:", filterCriteria);
   };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newCriteria = { ...filterCriteria };
-    newCriteria.searchTerm = e.target.value;
-    setFilterCriteria(newCriteria);
+    filterCriteria.searchTerm = e.target.value;
+    setFilterCriteria(filterCriteria);
+    //  console.log("Updated filter criteria:", filterCriteria);
   };
 
   const clearFilters = () => {
-    setFilterCriteria({
-      skills: [],
-      location: "",
-      hackathonInterests: "",
-      searchTerm: ""
-    });
+    //  console.log("Clearing all filters");
+    filterCriteria.skills = [];
+    filterCriteria.location = "";
+    filterCriteria.hackathonInterests = "";
+    filterCriteria.searchTerm = "";
+    setFilterCriteria(filterCriteria);
   };
 
   const hasActiveFilters = filterCriteria.skills.length > 0 ||
@@ -112,7 +115,9 @@ const ProfileFilter = () => {
             Hackathon Interest
           </Label>
           <Select
-            value={filterCriteria.hackathonInterests || "_any"}
+            value={filterCriteria.hackathonInterests ?
+              hackathons.find(h => h.title === filterCriteria.hackathonInterests)?.id || "_any" :
+              "_any"}
             onValueChange={handleHackathonChange}
           >
             <SelectTrigger id="hackathon-select">
