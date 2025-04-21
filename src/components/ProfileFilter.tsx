@@ -2,7 +2,7 @@ import { useProfiles } from "@/context/ProfilesContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { 
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -18,37 +18,39 @@ import { Check, Filter, X } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 
 const ProfileFilter = () => {
-  const { 
-    filterCriteria, 
-    setFilterCriteria, 
+  const {
+    filterCriteria,
+    setFilterCriteria,
     getAllSkills,
     getAllLocations,
     hackathons
   } = useProfiles();
-  
+
   const allSkills = getAllSkills();
   const allLocations = getAllLocations();
-  
+
   const handleSkillToggle = (skill: string) => {
     console.log(`Toggling skill: ${skill}`);
     const updatedSkills = filterCriteria.skills.includes(skill)
       ? filterCriteria.skills.filter(s => s !== skill)
       : [...filterCriteria.skills, skill];
-    
+
     setFilterCriteria({
       ...filterCriteria,
       skills: updatedSkills
     });
   };
-  
+
   const handleLocationChange = (location: string) => {
+    console.log("Location", location)
     setFilterCriteria({
       ...filterCriteria,
       location: location === "_any" ? "" : location
     });
   };
-  
+
   const handleHackathonChange = (hackathonId: string) => {
+    console.log(`Toggling hackathon interest: ${hackathonId}`);
     setFilterCriteria({
       ...filterCriteria,
       hackathonInterests: hackathonId === "_any" ? "" : hackathonId
@@ -61,7 +63,7 @@ const ProfileFilter = () => {
       searchTerm: e.target.value
     });
   };
-  
+
   const clearFilters = () => {
     console.log("Clearing all filters");
     setFilterCriteria({
@@ -71,12 +73,12 @@ const ProfileFilter = () => {
       searchTerm: ""
     });
   };
-  
-  const hasActiveFilters = filterCriteria.skills.length > 0 || 
-    filterCriteria.location || 
-    filterCriteria.hackathonInterests || 
+
+  const hasActiveFilters = filterCriteria.skills.length > 0 ||
+    filterCriteria.location ||
+    filterCriteria.hackathonInterests ||
     filterCriteria.searchTerm;
-  
+
   return (
     <div className="mb-6">
       <div className="flex flex-col md:flex-row gap-4 items-end mb-4">
@@ -91,13 +93,13 @@ const ProfileFilter = () => {
             onChange={handleSearchChange}
           />
         </div>
-        
+
         <div className="w-full md:w-64">
           <Label htmlFor="location-select" className="mb-2 block">
             Location
           </Label>
-          <Select 
-            value={filterCriteria.location || "_any"} 
+          <Select
+            value={filterCriteria.location || "_any"}
             onValueChange={handleLocationChange}
           >
             <SelectTrigger id="location-select">
@@ -113,15 +115,15 @@ const ProfileFilter = () => {
             </SelectContent>
           </Select>
         </div>
-        
+
         <div className="w-full md:w-64">
           <Label htmlFor="hackathon-select" className="mb-2 block">
             Hackathon Interest
           </Label>
-          <Select 
-            value={filterCriteria.hackathonInterests ? 
-              hackathons.find(h => h.title === filterCriteria.hackathonInterests)?.id || "_any" : 
-              "_any"} 
+          <Select
+            value={filterCriteria.hackathonInterests ?
+              hackathons.find(h => h.title === filterCriteria.hackathonInterests)?.id || "_any" :
+              "_any"}
             onValueChange={handleHackathonChange}
           >
             <SelectTrigger id="hackathon-select">
@@ -137,7 +139,7 @@ const ProfileFilter = () => {
             </SelectContent>
           </Select>
         </div>
-        
+
         <Popover>
           <PopoverTrigger asChild>
             <Button variant="outline" className="gap-2">
@@ -173,11 +175,11 @@ const ProfileFilter = () => {
             </div>
           </PopoverContent>
         </Popover>
-        
+
         {hasActiveFilters && (
-          <Button 
-            variant="ghost" 
-            className="gap-1 text-muted-foreground" 
+          <Button
+            variant="ghost"
+            className="gap-1 text-muted-foreground"
             onClick={clearFilters}
           >
             <X className="h-4 w-4" />
@@ -185,11 +187,11 @@ const ProfileFilter = () => {
           </Button>
         )}
       </div>
-      
+
       {filterCriteria.skills.length > 0 && (
         <div className="flex flex-wrap gap-1 mt-2">
           {filterCriteria.skills.map(skill => (
-            <div 
+            <div
               key={skill}
               className="flex items-center gap-1 bg-primary/10 text-primary text-xs rounded-full px-2 py-1"
             >

@@ -1,10 +1,10 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import { 
-  Profile, 
-  FilterCriteria, 
-  Message, 
-  Conversation, 
-  Hackathon, 
+import {
+  Profile,
+  FilterCriteria,
+  Message,
+  Conversation,
+  Hackathon,
   SkillColor
 } from '@/types/types';
 import { mockProfiles } from '@/data/mockProfiles';
@@ -54,7 +54,7 @@ export const ProfilesProvider = ({ children }: { children: React.ReactNode }) =>
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const { user } = useAuth();
   const { toast } = useToast();
-  
+
   const currentUser = mockProfiles[0];
 
   useEffect(() => {
@@ -66,7 +66,7 @@ export const ProfilesProvider = ({ children }: { children: React.ReactNode }) =>
     if (savedConversations) {
       try {
         const parsedConversations: Conversation[] = JSON.parse(savedConversations);
-        
+
         const conversationsWithDates = parsedConversations.map(convo => ({
           ...convo,
           lastMessageTime: new Date(convo.lastMessageTime),
@@ -75,7 +75,7 @@ export const ProfilesProvider = ({ children }: { children: React.ReactNode }) =>
             timestamp: new Date(msg.timestamp)
           }))
         }));
-        
+
         setConversations(conversationsWithDates);
       } catch (error) {
         console.error("Failed to parse saved conversations:", error);
@@ -90,74 +90,76 @@ export const ProfilesProvider = ({ children }: { children: React.ReactNode }) =>
   }, [conversations]);
 
   const fetchProfiles = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*');
-      
-      if (error) {
-        console.error('Error fetching profiles:', error);
-        return;
-      }
+    // try {
+    // const { data, error } = await supabase
+    //   .from('profiles')
+    //   .select('*');
 
-      if (data) {
-        const formattedProfiles: Profile[] = data.map(profile => ({
-          id: profile.id,
-          name: profile.username || 'Anonymous',
-          avatar: profile.avatar_url || `https://i.pravatar.cc/150?img=${Math.floor(Math.random() * 70)}`,
-          bio: profile.bio || '',
-          skills: profile.skills || [],
-          location: profile.location || 'Unknown',
-          hackathonInterests: profile.hackathon_interests || [],
-          email: profile.email || '',
-          github: profile.github,
-          linkedin: profile.linkedin
-        }));
+    // if (error) {
+    //   console.error('Error fetching profiles:', error);
+    //   return;
+    // }
 
-        setProfiles(formattedProfiles);
-        setFilteredProfiles(formattedProfiles);
-      }
-    } catch (error) {
-      console.error('Error fetching profiles:', error);
+    const data = mockProfiles; // Replace with the above line to fetch from Supabase
+
+    if (data) {
+      const formattedProfiles: Profile[] = data.map(profile => ({
+        id: profile.id,
+        name: profile.name || 'Anonymous',
+        avatar: profile.avatar || `https://i.pravatar.cc/150?img=${Math.floor(Math.random() * 70)}`,
+        bio: profile.bio || '',
+        skills: profile.skills || [],
+        location: profile.location || 'Unknown',
+        hackathonInterests: profile.hackathonInterests || [],
+        email: profile.email || '',
+        github: profile.github,
+        linkedin: profile.linkedin
+      }));
+
+      setProfiles(formattedProfiles);
+      setFilteredProfiles(formattedProfiles);
     }
+    // } catch (error) {
+    //   console.error('Error fetching profiles:', error);
+    // }
   };
 
   const applyFilters = () => {
-    let results = [...profiles];
-    
+    let results = mockProfiles;
+
     if (filterCriteria.skills.length > 0) {
-      results = results.filter(profile => 
+      results = results.filter(profile =>
         profile.skills.some(skill => filterCriteria.skills.includes(skill))
       );
       console.log("Results in skills", results);
     }
-    
+
     if (filterCriteria.location) {
-      results = results.filter(profile => 
+      results = results.filter(profile =>
         profile.location.toLowerCase().includes(filterCriteria.location.toLowerCase())
       );
       console.log("Results in location", results);
     }
-    
+
     if (filterCriteria.hackathonInterests) {
-      results = results.filter(profile => 
+      results = results.filter(profile =>
         profile.hackathonInterests.some(
           h => h.toLowerCase().includes(filterCriteria.hackathonInterests.toLowerCase())
         )
       );
       console.log("Results in Hackathons", results);
     }
-    
+
     if (filterCriteria.searchTerm) {
       const searchLower = filterCriteria.searchTerm.toLowerCase();
-      results = results.filter(profile => 
+      results = results.filter(profile =>
         profile.name.toLowerCase().includes(searchLower) ||
         profile.bio.toLowerCase().includes(searchLower) ||
         profile.skills.some(skill => skill.toLowerCase().includes(searchLower))
       );
       console.log("Results in searchTerm", results);
     }
-    
+
     console.log(`Filtered from ${profiles.length} to ${results.length} profiles`);
     setFilteredProfiles(results);
   };
@@ -165,7 +167,7 @@ export const ProfilesProvider = ({ children }: { children: React.ReactNode }) =>
   const setFilterCriteria = (criteria: FilterCriteria) => {
     console.log("Setting filter criteria:", criteria);
     setFilterCriteriaState(criteria);
-    
+
     setTimeout(() => {
       applyFilters();
     }, 0);
@@ -174,7 +176,7 @@ export const ProfilesProvider = ({ children }: { children: React.ReactNode }) =>
   const addProfile = async (profile: Profile) => {
     try {
       const existingProfileIndex = profiles.findIndex(p => p.id === profile.id);
-      
+
       const profileData = {
         id: profile.id,
         username: profile.name,
@@ -187,11 +189,11 @@ export const ProfilesProvider = ({ children }: { children: React.ReactNode }) =>
         github: profile.github,
         linkedin: profile.linkedin
       };
-      
+
       const { error } = await supabase
         .from('profiles')
         .upsert(profileData, { onConflict: 'id' });
-      
+
       if (error) {
         console.error('Error saving profile to Supabase:', error);
         toast({
@@ -201,7 +203,7 @@ export const ProfilesProvider = ({ children }: { children: React.ReactNode }) =>
         });
         return;
       }
-      
+
       if (existingProfileIndex >= 0) {
         const updatedProfiles = [...profiles];
         updatedProfiles[existingProfileIndex] = profile;
@@ -212,14 +214,14 @@ export const ProfilesProvider = ({ children }: { children: React.ReactNode }) =>
         setProfiles(newProfiles);
         applyFilters();
       }
-      
+
       toast({
         title: existingProfileIndex >= 0 ? "Profile Updated" : "Profile Created",
-        description: existingProfileIndex >= 0 
+        description: existingProfileIndex >= 0
           ? "Your profile has been updated successfully."
           : "Your profile has been created successfully.",
       });
-      
+
     } catch (error) {
       console.error('Error in addProfile:', error);
       toast({
@@ -253,7 +255,7 @@ export const ProfilesProvider = ({ children }: { children: React.ReactNode }) =>
         messages: [...conversations[existingConvoIndex].messages, newMessage],
         lastMessageTime: timestamp
       };
-      
+
       const updatedConvos = [...conversations];
       updatedConvos[existingConvoIndex] = updatedConvo;
       setConversations(updatedConvos);
@@ -264,7 +266,7 @@ export const ProfilesProvider = ({ children }: { children: React.ReactNode }) =>
         messages: [newMessage],
         lastMessageTime: timestamp
       };
-      
+
       setConversations([...conversations, newConvo]);
     }
   };
@@ -273,10 +275,10 @@ export const ProfilesProvider = ({ children }: { children: React.ReactNode }) =>
     const convo = conversations.find(
       c => c.participants.includes(profileId) && c.participants.includes(currentUser.id)
     );
-    
+
     return convo ? convo.messages : [];
   };
-  
+
   const getAllSkills = (): string[] => {
     const allSkills = new Set<string>();
     profiles.forEach(profile => {
@@ -284,7 +286,7 @@ export const ProfilesProvider = ({ children }: { children: React.ReactNode }) =>
     });
     return Array.from(allSkills).sort();
   };
-  
+
   const getAllLocations = (): string[] => {
     const locations = new Set<string>();
     profiles.forEach(profile => {
@@ -292,7 +294,7 @@ export const ProfilesProvider = ({ children }: { children: React.ReactNode }) =>
     });
     return Array.from(locations).sort();
   };
-  
+
   const getSkillColor = (skill: string): string => {
     const normalizedSkill = skill.toLowerCase();
     const skillKeys = Object.keys(SkillColor);
@@ -301,13 +303,13 @@ export const ProfilesProvider = ({ children }: { children: React.ReactNode }) =>
   };
 
   return (
-    <ProfilesContext.Provider 
-      value={{ 
+    <ProfilesContext.Provider
+      value={{
         profiles,
         hackathons,
         currentUser,
         conversations,
-        filteredProfiles, 
+        filteredProfiles,
         filterCriteria,
         setFilterCriteria,
         addProfile,
