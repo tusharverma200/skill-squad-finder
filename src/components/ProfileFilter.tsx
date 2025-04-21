@@ -115,9 +115,7 @@ const ProfileFilter = () => {
             Hackathon Interest
           </Label>
           <Select
-            value={filterCriteria.hackathonInterests ?
-              hackathons.find(h => h.title === filterCriteria.hackathonInterests)?.id || "_any" :
-              "_any"}
+            value={filterCriteria.hackathonInterests || "_any"}
             onValueChange={handleHackathonChange}
           >
             <SelectTrigger id="hackathon-select">
